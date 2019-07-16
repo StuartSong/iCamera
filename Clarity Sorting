@@ -64,13 +64,6 @@ while(True):
 	#cv2.imshow('/home/pi/Test/'+k+'.jpg',frame)
 	print('Working...')
 
-	ap = argparse.ArgumentParser()
-	ap.add_argument("-i", "--images",
-		help="path to input directory of images")
-	ap.add_argument("-t", "--threshold", type=float, default=average,
-		help="focus measures that fall below this value will be considered 'blurry'")
-	args = vars(ap.parse_args())
-
 	imagePath = '/home/pi/Test/'+k+'.jpg'
 	image = cv2.imread(imagePath)
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
