@@ -1,0 +1,106 @@
+import numpy as np
+import cv2
+import time
+import math
+import sys
+from imutils import paths
+import argparse
+from datetime import datetime
+import uuid
+import os
+import shutil
+
+def variance_of_laplacian(image):
+	return cv2.Laplacian(image, cv2.CV_64F).var()
+
+cap = cv2.VideoCapture(0)
+cap.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH,4096);
+cap.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT,2160)
+
+n = 0
+print('Turning on Camera...')
+time.sleep(1)
+print('Starting calibration process...\nPlease put files on the scanner then remove it')
+time.sleep(2)
+shutil.rmtree('/home/pi/Patient/')
+os.mkdir('/home/pi/Patient/')
+
+fm = []
+while(True):
+	n = n+1
+	ret, frame = cap.read()
+	k = str(n)
+	cv2.imwrite('/home/pi/Test/'+k+'.jpg',frame,[int(cv2.IMWRITE_JPEG_QUALITY), 100])
+	#cv2.imshow('/home/pi/Test/'+k+'.jpg',frame)
+	print('Calibrating')
+
+	ap = argparse.ArgumentParser()
+	ap.add_argument("-i", "--images",
+		help="path to input directory of images")
+	ap.add_argument("-t", "--threshold", type=float, default=5000.0,
+		help="focus measures that fall below this value will be considered 'blurry'")
+	args = vars(ap.parse_args())
+	
+	imagePath = '/home/pi/Test/'+k+'.jpg'
+	image = cv2.imread(imagePath)
+	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+	fm.append(variance_of_laplacian(gray))
+	os.remove('/home/pi/Test/'+str(n)+'.jpg')
+	if n == 20:
+		break
+
+time.sleep(2)
+print('Calibriation Completed\nNow please put files on the scanner')
+fm.sort(reverse=True)
+average = np.mean(fm[1:8])
+print(str(average),str(fm))
+time.sleep(5)
+
+while(True):
+	n = n+1
+	ret, frame = cap.read()
+	k = str(n)
+	cv2.imwrite('/home/pi/Test/'+k+'.jpg',frame,[int(cv2.IMWRITE_JPEG_QUALITY), 100])
+	#cv2.imshow('/home/pi/Test/'+k+'.jpg',frame)
+	print('Working...')
+
+	ap = argparse.ArgumentParser()
+	ap.add_argument("-i", "--images",
+		help="path to input directory of images")
+	ap.add_argument("-t", "--threshold", type=float, default=average,
+		help="focus measures that fall below this value will be considered 'blurry'")
+	args = vars(ap.parse_args())
+
+	imagePath = '/home/pi/Test/'+k+'.jpg'
+	image = cv2.imread(imagePath)
+	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+	fm = variance_of_laplacian(gray)	
+	
+	fm2 = str(fm)
+	default = fm
+	
+	print('Solution:'+fm2)
+	
+	if fm < args["threshold"]:
+		text = "Blurry"
+		print('This Photo is blurry. Ditching...')
+		os.remove('/home/pi/Test/'+k+'.jpg')
+
+	else:
+		text = "Not Blurry"
+		Time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S.jpg')
+		UUID = str(uuid.uuid1())
+		print('This Photo is clear. Saving...')
+		shutil.move(imagePath,'/home/pi/Patient/'+Time)
+		image =cv2.imread('/home/pi/Patient/'+Time,0)
+		cv2.imshow("Patient File",image)
+		# cv2.imwrite('/home/pi/Patient/'+k+'.jpg',frame)
+	# image = None
+	
+	# time.sleep(0.5)
+	
+
+cap.release()
+cv2.destroyAllWindows()
+
+
