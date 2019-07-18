@@ -55,8 +55,8 @@ def classify_hist_with_split(image1,image2,size = (256,256)):
 
 # Average Hash Value
 def classify_aHash(image1,image2):
-	image1 = cv2.resize(image1,(8,8))
-	image2 = cv2.resize(image2,(8,8))
+	image1 = cv2.resize(image1,(500,500))
+	image2 = cv2.resize(image2,(500,500))
 	gray1 = cv2.cvtColor(image1,cv2.COLOR_BGR2GRAY)
 	gray2 = cv2.cvtColor(image2,cv2.COLOR_BGR2GRAY)
 	hash1 = getHash(gray1)
@@ -64,8 +64,8 @@ def classify_aHash(image1,image2):
 	return Hamming_distance(hash1,hash2)
 
 def classify_pHash(image1,image2):
-	image1 = cv2.resize(image1,(32,32))
-	image2 = cv2.resize(image2,(32,32))
+	# image1 = cv2.resize(image1,(500,500))
+	# image2 = cv2.resize(image2,(500,500))
 	gray1 = cv2.cvtColor(image1,cv2.COLOR_BGR2GRAY)
 	gray2 = cv2.cvtColor(image2,cv2.COLOR_BGR2GRAY)
 	dct1 = cv2.dct(np.float32(gray1))
@@ -125,7 +125,7 @@ while(True):
 	ap = argparse.ArgumentParser()
 	ap.add_argument("-i", "--images",
 		help="path to input directory of images")
-	ap.add_argument("-t", "--threshold", type=float, default=5000.0,
+	ap.add_argument("-t", "--threshold", type=float, default=9999.0,
 		help="focus measures that fall below this value will be considered 'blurry'")
 	args = vars(ap.parse_args())
 	
@@ -142,7 +142,7 @@ print('Calibriation Completed\nNow please put files on the scanner')
 fm.sort(reverse=True) # Sort out highest values
 average = np.mean(fm[1:8]) # Take average of values as baseline
 print(str(average),str(fm))
-# average = 200
+# average = 100
 time.sleep(5)
 
 PicturePath_Mark = []
@@ -170,12 +170,12 @@ while(True):
 	
 	#presskey =  cv2.waitKey(1)
 	
-	if fm < args["threshold"]:
+	if fm[-1] < args["threshold"]:
 		text = "Blurry"
 		print('This Photo is blurry. Ditching...')
 		os.remove('/home/pi/Test/'+str(n)+'.jpg')
 
-	else:
+	elif fm[-1] > args["threshold"]:
 		text = "Not Blurry"
 		Time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S.jpg')
 		UUID = str(uuid.uuid1())
@@ -183,7 +183,7 @@ while(True):
 		shutil.move(imagePath,New_imagePath)
 
 		PicturePath_Mark.append(New_imagePath)
-		print(n,PicturePath_Mark)
+		# print(n,PicturePath_Mark)
 		if n>1:
 			image1 = PicturePath_Mark[-2]
 			image2 = PicturePath_Mark[-1]
@@ -192,7 +192,7 @@ while(True):
 			num1 = classify_aHash(img1,img2)
 			num2 = classify_pHash(img1,img2)
 			print(num1,num2)
-			if num1 < 2:
+			if num1 < 500:
 				# Compare clarity and remove the low one
 				if fm[-1] > fm[-2]:
 					os.remove(image2)
@@ -217,5 +217,3 @@ while(True):
 
 cap.release()
 cv2.destroyAllWindows()
-
-
