@@ -98,11 +98,8 @@ def Hamming_distance(hash1,hash2):
 			num += 1
 	return num
 
-
 def variance_of_laplacian(image):
 	return cv2.Laplacian(image, cv2.CV_64F).var()
-
-
 
 def stop(c):
 	if c > 10:
@@ -236,5 +233,6 @@ while(True):
 
 # cap.release()
 # cv2.destroyAllWindows()
+
 
 
