@@ -1,0 +1,40 @@
+from collections import defaultdict
+
+from pyramid.httpexceptions import HTTPForbidden
+from pyramid.view import view_config
+
+from cornice import Service
+
+import time
+from datetime import datetime
+
+imagecap = Service(name='imagecap',path='/imagecap/{username}',description='handle image')
+@imagecap.post()
+def upload_image(request):
+	print('got the image')
+	input = request.POST['realfile'].file
+	import shutil
+	filename = request.POST['realname']
+	import os
+	imagename = os.path.split(filename)[1]
+	print(filename)
+	print(imagename)
+	print(input)
+
+	# Time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+	with open('./Patient/' +imagename, 'wb') as outfile:
+		print('got the image')
+		shutil.copyfileobj(input, outfile)
+	return {}
+
+@imagecap.get()
+def get_image(request):
+	return 'get images'
+
+
+@view_config(route_name="whoami", permission="authenticated", renderer="json")
+def whoami(request):
+	"""View returning the authenticated user's credentials."""
+	username = request.authenticated_userid
+	principals = request.effective_principals
+	return {"username": username, "principals": principals}
