@@ -58,7 +58,7 @@ pip install numpy opencv-python matplotlib requests
 3. Run the script to start capturing and evaluating the images.
 
 ```bash
-python Clarity_Sorting.py
+python ClaritySorting.py
 ```
 
 Images will be stored in the `Patient/` folder if deemed clear enough. Blurry or duplicate images will be discarded automatically.
